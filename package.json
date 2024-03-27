@@ -1,0 +1,11 @@
+{
+  "name": "hh-app",
+  "version": "1.0.0",
+  "description": "Social media app for organising group holidays",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
