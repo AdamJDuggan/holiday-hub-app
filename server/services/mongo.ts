@@ -12,5 +12,5 @@ mongoose.connection.on("error", (err: object) =>
 
 export default async function connectToMongo() {
   await mongoose.set("strictQuery", false);
-  await mongoose.connect(MONGO_URI);
+  await mongoose.connect(MONGO_URI, { writeConcern: { w: "majority" } });
 }
