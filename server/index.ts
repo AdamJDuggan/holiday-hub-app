@@ -15,6 +15,9 @@ import trustSelfSignedCerts from "./middleware/trustSelfSignedCerts";
 import connectToMongo from "./services/mongo";
 // Models
 const Goal = require("./models/goals");
+import { mergeTypeDefs, mergeResolvers } from "@graphql-tools/merge";
+import { loadFilesSync } from "@graphql-tools/load-files";
+import path from "path";
 
 dotenv.config();
 
@@ -72,13 +75,50 @@ app.get(
  * Graphql --------------------------
  */
 
-const typeDefs = require("./graphql/typeDefs");
-const resolvers = require("./graphql/resolvers");
+// Function to recursively find all typeDef.ts files
+function findGraphqlFiles(
+  dir: string,
+  extension: string,
+  fileList: string[] = []
+): string[] {
+  const files = fs.readdirSync(dir);
+
+  files.forEach((file: any) => {
+    const filePath = path.join(dir, file);
+    const fileStat = fs.statSync(filePath);
+
+    if (fileStat.isDirectory()) {
+      fileList = findGraphqlFiles(filePath, extension, fileList);
+    } else if (file.endsWith(extension)) {
+      fileList.push(filePath);
+    }
+  });
+
+  return fileList;
+}
+
+// Find all typeDef.ts files in the collections directory and its subdirectories
+const typeDefFiles = findGraphqlFiles(
+  path.join(__dirname, "collections"),
+  "typeDef.ts"
+);
+
+// Load and merge all found typeDef.ts files
+const typeDefs = mergeTypeDefs(loadFilesSync(typeDefFiles));
+
+// Find all typeDef.ts files in the collections directory and its subdirectories
+const resolverFiles = findGraphqlFiles(
+  path.join(__dirname, "collections"),
+  "resolvers.js"
+);
+
+const resolvers = mergeResolvers(loadFilesSync(resolverFiles));
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  introspection: true, // Enable introspection
-  playground: true, // Enable the Playground
+  introspection: true,
+  playground: true,
 });
 
 /**
